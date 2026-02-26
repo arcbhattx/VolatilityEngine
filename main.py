@@ -6,9 +6,14 @@ import matplotlib.pyplot as plt
 # Choose stock
 ticker_symbol = "AAPL"
 
-# Download 1 year of historical data
-data = yf.download(ticker_symbol, period="1y")
+ticker_list = ["AAPL", "MSFT", "GOOG"]
 
+data_frame = yf.download(ticker_symbol, period="1y")
+
+data_frame.to_csv('datasets/output.csv')
+
+
+'''
 # Compute daily log returns
 data["Returns"] = np.log(data["Close"] / data["Close"].shift(1))
 
@@ -25,3 +30,5 @@ plt.figure()
 data["Volatility"].plot(title=f"{ticker_symbol} 30-Day Volatility")
 
 plt.show()
+
+'''

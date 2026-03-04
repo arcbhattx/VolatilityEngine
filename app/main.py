@@ -12,6 +12,8 @@ import pandas as pd
 import numpy as np
 from datetime import datetime, timedelta
 
+from routers import stocks
+
 
 app = FastAPI(
     title="VolatilityEngine API",
@@ -26,6 +28,8 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+app.include_router(stocks.router)
 
 if __name__ == "__main__":
     uvicorn.run(app,port=8000)

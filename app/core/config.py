@@ -1,7 +1,13 @@
 from pydantic_settings import BaseSettings
 
+
 class Settings(BaseSettings):
-    DATABASE_URL = "sqlite:///./volatility.db"
+    DATABASE_URL: str = "sqlite+aiosqlite:///./volatility.db"
+    SECRET_KEY: str
+    ALGORITHM: str = "HS256"
+
+    class Config:
+        env_file = "../.env"
 
 
 settings = Settings()

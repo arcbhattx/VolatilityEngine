@@ -4,10 +4,13 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 from jose import JWTError, jwt
 
-from app.core.config import SECRET_KEY, ALGORITHM
-from app.core.database import get_async_session
-from app.models.user import User
-from app.schema.auth_models import TokenData
+from core.config import settings
+from core.database import get_async_session
+from models.user import User
+from schema.auth_models import TokenData
+
+SECRET_KEY = settings.SECRET_KEY
+ALGORITHM = settings.ALGORITHM
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/auth-user")
 

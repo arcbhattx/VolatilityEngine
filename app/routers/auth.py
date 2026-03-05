@@ -4,11 +4,11 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 from datetime import timedelta
 
-from app.core.database import get_async_session
-from app.core.security import verify_password, get_password_hashed, create_access_token, ACCESS_TOKEN_EXPIRES_MINUTES
-from app.dependencies.auth import get_current_active_user
-from app.models.user import User
-from app.schema.auth_models import Token, UserCreate, UserRead
+from core.database import get_async_session
+from core.security import verify_password, get_password_hashed, create_access_token, ACCESS_TOKEN_EXPIRES_MINUTES
+from dependencies.auth import get_current_active_user
+from models.user import User
+from schema.auth_models import Token, UserCreate, UserRead
 
 router = APIRouter(prefix="/auth")
 
@@ -35,7 +35,7 @@ async def login(
     )
     return {"status": "success", "access_token": access_token, "token_type": "bearer"}
 
-@router.post("/create-user", tags=["users"])
+@router.post("/create-user", tags=["auth"])
 async def create_user(user: UserCreate, session: AsyncSession = Depends(get_async_session)):
     existing = await session.execute(select(User).where(User.username == user.username))
     if existing.scalar_one_or_none():
@@ -52,6 +52,6 @@ async def create_user(user: UserCreate, session: AsyncSession = Depends(get_asyn
 
     return {"status": "success", "user": {"id": new_user.id, "username": new_user.username}}
 
-@router.get("/user-info", tags=["users"], response_model=UserRead)
+@router.get("/user-info", response_model=UserRead)
 async def get_user_info(current_user: User = Depends(get_current_active_user)):
     return current_user

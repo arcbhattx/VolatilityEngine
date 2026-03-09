@@ -11,7 +11,7 @@ export default function ConditionalLayout({
   const pathname = usePathname();
 
   // Routes that should NOT use LayoutShell
-  const noLayoutRoutes = ["/login", "/signup", "/"];
+  const noLayoutRoutes = ["/login", "/signup", "/", "/profile"];
 
   if (noLayoutRoutes.includes(pathname)) {
     return <>{children}</>;

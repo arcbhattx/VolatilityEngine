@@ -1,7 +1,9 @@
 "use client";
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { LineChart } from "@mui/x-charts/LineChart";
 import { BarChart } from "@mui/x-charts/BarChart";
+import { useAuth } from "../context/authContext";
+import { useRouter } from "next/navigation";
 
 // ─── Mock Data ────────────────────────────────────────────────────────────────
 
@@ -71,6 +73,9 @@ function StatCard({ label, value, sub, up }: { label: string; value: string; sub
 type ChartTab = "price" | "volatility" | "returns";
 
 export default function Dashboard() {
+
+  const { token, loading} = useAuth();
+  const router = useRouter();
   const [selected, setSelected] = useState("AAPL");
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [activeChart, setActiveChart] = useState<ChartTab>("price");
@@ -80,6 +85,14 @@ export default function Dashboard() {
   const vols = useMemo(() => generateVolSeries(seed), [seed]);
   const returns_ = useMemo(() => generateReturnSeries(), [seed]);
   const stat = STATS[selected];
+
+    useEffect(() => {
+    if (!loading && !token) {
+      router.push("/login");
+    }
+  }, [token, loading, router]);
+
+
 
   const chartTabs: { id: ChartTab; label: string }[] = [
     { id: "price", label: "Price" },

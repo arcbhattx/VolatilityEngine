@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends
 from fastapi.responses import JSONResponse
-from services.stock_prices import get_daily_prices
+from services.stock_prices import get_prices
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 from typing import Union
@@ -26,7 +26,7 @@ async def get_stocks_prices(
     if not ticker_list:
         return JSONResponse(content=[])
 
-    df = get_daily_prices(ticker=ticker_list)
+    df = get_prices(ticker=ticker_list)
     df = df.reset_index()
     df["Date"] = df["Date"].dt.strftime("%Y-%m-%d")
     return JSONResponse(content=json.loads(df.to_json(orient="records")))
@@ -38,7 +38,7 @@ async def get_stocks_prices(
 ):
     ticker_list = ["AAPL", "TSLA", "NVDA", "MSFT", "AMZN", "META", "GOOG"]
 
-    df = get_daily_prices(ticker=ticker_list, lookback_days=90)
+    df = get_prices(ticker=ticker_list, lookback_days=90)
     df = df.reset_index()
     df["Date"] = df["Date"].dt.strftime("%Y-%m-%d")
     return JSONResponse(content=json.loads(df.to_json(orient="records")))

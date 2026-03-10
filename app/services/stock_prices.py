@@ -4,7 +4,7 @@ from datetime import datetime, timedelta
 from typing import Union
 
 
-def get_daily_prices(
+def get_prices(
     ticker: Union[str, list[str]],
     start: Union[str, datetime, None] = None,
     end: Union[str, datetime, None] = None,

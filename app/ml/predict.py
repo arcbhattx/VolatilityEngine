@@ -12,8 +12,8 @@ import numpy as np
 import pandas as pd
 import torch
 
-from app.ml.model import VolatilityLSTM
-from app.ml.preprocessing import compute_features
+from ml.model import VolatilityLSTM
+from ml.preprocessing import compute_features
 
 
 MODELS_DIR   = Path(__file__).parent / "models"

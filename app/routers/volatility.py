@@ -1,11 +1,16 @@
 from datetime import datetime, timedelta
 from functools import lru_cache
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Depends
 from schema.volatility_models import VolatilityResponse
+from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.ml.predict import load_predictor, predict_volatility
-from app.services.stock_prices import get_prices
+from ml.predict import load_predictor, predict_volatility
+from services.stock_prices import get_prices
+
+from core.database import get_async_session
+from models.user import User
+from dependencies.auth import get_current_user
 
 router = APIRouter(prefix="/volatility", tags=["volatility"])
 
@@ -16,7 +21,10 @@ def _cached_predictor(ticker: str):
     return load_predictor(ticker)
 
 @router.get("/{ticker}", response_model=VolatilityResponse)
-def get_volatility(ticker: str):
+async def get_volatility(
+    ticker: str,
+    ):
+
     """
     Return 30/60/90-day forward volatility forecast for a ticker.
 

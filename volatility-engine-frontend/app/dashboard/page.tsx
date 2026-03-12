@@ -12,6 +12,7 @@ import StockDropdown from "../components/dashboard/StockDropdown";
 import { useAuth } from "../context/authContext";
 import { useRouter } from "next/navigation";
 import useStockPrices from "../api-hooks/dashboard";
+import useVolatility from "../api-hooks/volatility";
 
 type ChartTab = "price" | "volatility" | "returns";
 
@@ -46,6 +47,8 @@ export default function Dashboard() {
 
   const [selected, setSelected] = useState("");
   const [activeChart, setActiveChart] = useState<ChartTab>("price");
+  
+  const { data: volatilityData, apiLoading } = useVolatility(selected);
 
   const stocks = useMemo(() => {
     if (!rawPrices.length) return [];
@@ -102,8 +105,12 @@ export default function Dashboard() {
         <StatCard label="Price" value={`$${latestPrice.toFixed(2)}`} />
 
         <StatCard
-          label="Volatility"
-          value={`${volSeries.at(-1)?.toFixed(2)}%`}
+          label="30D Volatility"
+          value={
+            apiLoading
+              ? "Loading..."
+              : `${volatilityData?.vol_30d.toFixed(2)}%`
+          }
         />
 
         <StatCard

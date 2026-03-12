@@ -17,6 +17,7 @@ from contextlib import asynccontextmanager
 
 from routers import stocks
 from routers import auth
+from routers import volatility
 
 
 @asynccontextmanager
@@ -47,6 +48,7 @@ app.add_middleware(
 
 app.include_router(stocks.router)
 app.include_router(auth.router)
+app.include_router(volatility.router)
 
 if __name__ == "__main__":
     uvicorn.run(app, host='127.0.0.1', port=8000)

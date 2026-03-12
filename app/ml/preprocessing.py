@@ -13,9 +13,9 @@ def compute_features(df: pd.DataFrame, price_col: str = "Close") -> pd.DataFrame
     df["log_return"] = np.log(df[price_col] / df[price_col].shift(1))
 
     trading_days = 252
-    df["realized_vol_5d"]  = df["log_return"].rolling(5).std()  * np.sqrt(trading_days)
-    df["realized_vol_21d"] = df["log_return"].rolling(21).std() * np.sqrt(trading_days)
-    df["realized_vol_63d"] = df["log_return"].rolling(63).std() * np.sqrt(trading_days)
+    df["realized_vol_5d"]  = df["log_return"].rolling(5).std()  * np.sqrt(trading_days) # weekly
+    df["realized_vol_21d"] = df["log_return"].rolling(21).std() * np.sqrt(trading_days) # monthly
+    df["realized_vol_63d"] = df["log_return"].rolling(63).std() * np.sqrt(trading_days) # quartarly
 
     df.dropna(inplace=True)
 

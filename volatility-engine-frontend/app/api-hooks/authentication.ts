@@ -11,7 +11,10 @@ export interface User {
   username: string;
 }
 
-export async function loginUser(username: string, password: string): Promise<LoginResponse> {
+export async function loginUser(
+  username: string,
+  password: string,
+): Promise<LoginResponse> {
   const formData = new URLSearchParams();
   formData.append("username", username);
   formData.append("password", password);

@@ -22,36 +22,25 @@ export default function SidebarItem({
   return (
     <button
       onClick={onClick}
-      title={collapsed ? label : undefined}
       style={{
         width: "100%",
         display: "flex",
         alignItems: "center",
-        gap: 14,
-        padding: collapsed ? "12px 0" : "11px 20px",
+        gap: 12,
+        padding: collapsed ? "12px 0" : "12px 16px",
         justifyContent: collapsed ? "center" : "flex-start",
         background: active ? "rgba(255,255,255,0.06)" : "transparent",
         border: "none",
         cursor: "pointer",
+        color: "#fff",
       }}
+      title={collapsed ? label : undefined}
     >
-      <span style={{ color: active ? "#fff" : "rgba(255,255,255,0.4)" }}>
-        {icon}
-      </span>
-
-      {!collapsed && (
-        <span
-          style={{
-            fontSize: 10,
-            letterSpacing: "0.25em",
-            textTransform: "uppercase",
-          }}
-        >
-          {label}
-        </span>
+      <span>{icon}</span>
+      {!collapsed && <span>{label}</span>}
+      {!collapsed && badge !== undefined && (
+        <span style={{ marginLeft: "auto" }}>{badge}</span>
       )}
-
-      {!collapsed && badge !== undefined && <span>{badge}</span>}
     </button>
   );
 }

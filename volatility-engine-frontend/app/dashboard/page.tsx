@@ -47,7 +47,6 @@ export default function Dashboard() {
 
   const [selected, setSelected] = useState("");
   const [activeChart, setActiveChart] = useState<ChartTab>("price");
-  
   const { data: volatilityData, apiLoading } = useVolatility(selected);
 
   const stocks = useMemo(() => {

@@ -9,7 +9,6 @@ export default function useStockPrices() {
   const [apiLoading, setApiLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-
   useEffect(() => {
     async function fetchPrices() {
       try {
@@ -23,7 +22,7 @@ export default function useStockPrices() {
         if (!res.ok) throw new Error(`Error ${res.status}: ${res.statusText}`);
 
         const data = await res.json();
-        console.log(data)
+        console.log(data);
         setPrices(data);
       } catch (err) {
         setError(err instanceof Error ? err.message : "Failed to fetch prices");

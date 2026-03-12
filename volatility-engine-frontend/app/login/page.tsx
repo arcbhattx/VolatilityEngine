@@ -6,9 +6,8 @@ import Toast from "../components/reusable/Toast";
 import { useAuth } from "../context/authContext";
 
 export default function Login() {
-
   const router = useRouter();
-  const {login} = useAuth();
+  const { login } = useAuth();
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -17,7 +16,7 @@ export default function Login() {
 
   const [toast, setToast] = useState<any>(null);
 
-   const handleSubmit = async () => {
+  const handleSubmit = async () => {
     setLoading(true);
     try {
       const res = await loginUser(email, password);
@@ -33,22 +32,16 @@ export default function Login() {
     setLoading(false);
   };
 
-
   return (
     <main className="min-h-screen bg-[#080808] text-white flex flex-col">
-
       <div className="flex-1 flex items-center justify-center px-6">
-
         <div className="w-full max-w-[320px]">
-
           <div className="mb-6">
             <p className="text-white/30 text-[10px] tracking-[0.35em] uppercase mb-2">
               Dashboard — Sign In
             </p>
 
-            <h1 className="text-3xl font-light">
-              Welcome back
-            </h1>
+            <h1 className="text-3xl font-light">Welcome back</h1>
           </div>
 
           {/* Email */}
@@ -89,7 +82,6 @@ export default function Login() {
               Create one →
             </a>
           </div>
-
         </div>
       </div>
 
@@ -100,7 +92,6 @@ export default function Login() {
           onClose={() => setToast(null)}
         />
       )}
-
     </main>
   );
 }
@@ -112,12 +103,10 @@ function Field({
   id,
   focused,
   setFocused,
-  type = "text"
+  type = "text",
 }: any) {
-
   return (
     <div className="mb-5">
-
       <div
         className={`border-b pb-2 transition ${
           focused === id ? "border-white/40" : "border-white/15"
@@ -136,7 +125,6 @@ function Field({
           className="w-full bg-transparent outline-none text-sm"
         />
       </div>
-
     </div>
   );
 }

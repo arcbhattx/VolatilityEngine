@@ -1,5 +1,9 @@
 import { useState } from "react";
-import { loginUser, createUser, getUserInfo } from "../api-hooks/authentication";
+import {
+  loginUser,
+  createUser,
+  getUserInfo,
+} from "../api-hooks/authentication";
 
 export function useAuth() {
   const [loading, setLoading] = useState(false);

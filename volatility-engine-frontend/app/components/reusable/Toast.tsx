@@ -9,7 +9,12 @@ interface ToastProps {
   onClose: () => void;
 }
 
-export default function Toast({ message, type = "info", duration = 3000, onClose }: ToastProps) {
+export default function Toast({
+  message,
+  type = "info",
+  duration = 3000,
+  onClose,
+}: ToastProps) {
   useEffect(() => {
     const timer = setTimeout(() => {
       onClose();

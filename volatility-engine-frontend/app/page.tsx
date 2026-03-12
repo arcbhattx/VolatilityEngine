@@ -1,16 +1,13 @@
-'use client'
+"use client";
 
 import { useRouter } from "next/navigation";
 
-
 export default function Home() {
-
   const router = useRouter();
 
-  const onClickGetStarted = ( () =>{
-    router.push("/login")
-  })
-
+  const onClickGetStarted = () => {
+    router.push("/login");
+  };
 
   return (
     <main className="min-h-screen bg-[#080808] text-white">
@@ -30,8 +27,9 @@ export default function Home() {
             </a>
           ))}
           <button
-          onClick={onClickGetStarted}
-           className="px-5 py-2 border border-white/20 text-white text-xs tracking-[0.2em] uppercase hover:bg-white hover:text-black transition-all duration-300">
+            onClick={onClickGetStarted}
+            className="px-5 py-2 border border-white/20 text-white text-xs tracking-[0.2em] uppercase hover:bg-white hover:text-black transition-all duration-300"
+          >
             Get Started
           </button>
         </div>
@@ -55,8 +53,10 @@ export default function Home() {
               Institutional-grade volatility analytics built for traders who
               operate at the edge of information.
             </p>
-            <button onClick={onClickGetStarted}
-            className="px-10 py-4 bg-white text-black text-xs tracking-[0.3em] uppercase font-medium hover:bg-white/80 transition-colors duration-300">
+            <button
+              onClick={onClickGetStarted}
+              className="px-10 py-4 bg-white text-black text-xs tracking-[0.3em] uppercase font-medium hover:bg-white/80 transition-colors duration-300"
+            >
               Get Started
             </button>
           </div>

@@ -17,9 +17,7 @@ export default function RootLayout({
     <html lang="en" className={geist.variable}>
       <body className="h-screen w-full overflow-hidden">
         <AuthProvider>
-          <ConditionalLayout>
-            {children}
-          </ConditionalLayout>
+          <ConditionalLayout>{children}</ConditionalLayout>
         </AuthProvider>
       </body>
     </html>

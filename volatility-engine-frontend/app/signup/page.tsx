@@ -5,45 +5,39 @@ import { createUser } from "../api-hooks/authentication";
 import Toast from "../components/reusable/Toast";
 
 export default function Signup() {
-
   const router = useRouter();
 
-  const [email,setEmail] = useState("");
-  const [password,setPassword] = useState("");
-  const [confirm,setConfirm] = useState("");
-  const [focused,setFocused] = useState<string | null>(null);
-  const [loading,setLoading] = useState(false);
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [confirm, setConfirm] = useState("");
+  const [focused, setFocused] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
 
-  const [toast,setToast] = useState<any>(null);
+  const [toast, setToast] = useState<any>(null);
 
   const passwordMismatch = confirm.length > 0 && password !== confirm;
 
   const handleSubmit = async () => {
-
-    if(passwordMismatch) return;
+    if (passwordMismatch) return;
 
     setLoading(true);
 
     try {
-
-      await createUser(email,password);
+      await createUser(email, password);
 
       setToast({
-        message:"Account created",
-        type:"success"
+        message: "Account created",
+        type: "success",
       });
 
-      setTimeout(()=>{
+      setTimeout(() => {
         router.push("/login");
-      },900);
-
-    }catch(err:any){
-
+      }, 900);
+    } catch (err: any) {
       setToast({
-        message:err.message || "Signup failed",
-        type:"error"
+        message: err.message || "Signup failed",
+        type: "error",
       });
-
     }
 
     setLoading(false);
@@ -51,19 +45,14 @@ export default function Signup() {
 
   return (
     <main className="min-h-screen bg-[#080808] text-white flex flex-col">
-
       <div className="flex-1 flex items-center justify-center px-6">
-
         <div className="w-full max-w-[320px]">
-
           <div className="mb-6">
             <p className="text-white/30 text-[10px] tracking-[0.35em] uppercase mb-2">
               Dashboard — Create Account
             </p>
 
-            <h1 className="text-3xl font-light">
-              Request access
-            </h1>
+            <h1 className="text-3xl font-light">Request access</h1>
           </div>
 
           <Field
@@ -110,9 +99,7 @@ export default function Signup() {
           </button>
 
           <div className="text-center text-[11px]">
-            <span className="text-white/30">
-              Already have an account?
-            </span>{" "}
+            <span className="text-white/30">Already have an account?</span>{" "}
             <a
               onClick={() => router.push("/login")}
               className="text-white/60 hover:text-white cursor-pointer"
@@ -120,7 +107,6 @@ export default function Signup() {
               Sign in →
             </a>
           </div>
-
         </div>
       </div>
 
@@ -131,7 +117,6 @@ export default function Signup() {
           onClose={() => setToast(null)}
         />
       )}
-
     </main>
   );
 }
@@ -143,12 +128,10 @@ function Field({
   id,
   focused,
   setFocused,
-  type = "text"
+  type = "text",
 }: any) {
-
   return (
     <div className="mb-5">
-
       <div
         className={`border-b pb-2 transition ${
           focused === id ? "border-white/40" : "border-white/15"
@@ -167,7 +150,6 @@ function Field({
           className="w-full bg-transparent outline-none text-sm"
         />
       </div>
-
     </div>
   );
 }

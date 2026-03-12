@@ -12,16 +12,10 @@ export default function StatCard({ label, value, sub, up }: Props) {
         {label}
       </span>
 
-      <span className="text-white text-2xl font-semibold">
-        {value}
-      </span>
+      <span className="text-white text-2xl font-semibold">{value}</span>
 
       {sub && (
-        <span
-          className={`text-sm ${
-            up ? "text-green-400" : "text-red-400"
-          }`}
-        >
+        <span className={`text-sm ${up ? "text-green-400" : "text-red-400"}`}>
           {sub}
         </span>
       )}

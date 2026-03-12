@@ -21,7 +21,7 @@ export default function useVolatility(ticker: string) {
         setApiLoading(true);
 
         const response = await fetch(
-          `http://127.0.0.1:8000/volatility/${ticker}`
+          `http://127.0.0.1:8000/volatility/${ticker}`,
         );
 
         if (!response.ok) {
@@ -30,7 +30,7 @@ export default function useVolatility(ticker: string) {
 
         const json: VolatilityData = await response.json();
         setData(json);
-        console.log(json)
+        console.log(json);
       } catch (err) {
         setError(err instanceof Error ? err.message : "Unknown error");
       } finally {

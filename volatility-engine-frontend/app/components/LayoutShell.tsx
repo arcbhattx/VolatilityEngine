@@ -2,31 +2,7 @@
 
 import { useState, ReactNode } from "react";
 import Sidebar from "./Sidebar";
-
-function Topbar({ title }: { title: string }) {
-  return (
-    <header
-      style={{
-        height: 64,
-        borderBottom: "1px solid rgba(255,255,255,0.06)",
-        display: "flex",
-        alignItems: "center",
-        padding: "0 36px",
-        background: "#080808",
-      }}
-    >
-      <span
-        style={{
-          fontSize: 11,
-          letterSpacing: "0.3em",
-          textTransform: "uppercase",
-        }}
-      >
-        {title}
-      </span>
-    </header>
-  );
-}
+import Topbar from "./Topbar";
 
 const PAGE_TITLES: Record<string, string> = {
   dashboard: "Dashboard",
@@ -52,15 +28,7 @@ export default function LayoutShell({
   const title = PAGE_TITLES[activePage];
 
   return (
-    <div
-      style={{
-        display: "flex",
-        height: "100vh",
-        width: "100vw",
-        background: "#080808",
-        color: "#fff",
-      }}
-    >
+    <div className="flex h-screen w-screen bg-black text-white overflow-hidden">
       <Sidebar
         activeId={activePage}
         onNavigate={setActivePage}
@@ -68,25 +36,10 @@ export default function LayoutShell({
         setCollapsed={setCollapsed}
       />
 
-      <div
-        style={{
-          flex: 1,
-          display: "flex",
-          flexDirection: "column",
-          transition: "all 0.25s ease",
-        }}
-      >
+      <div className="flex flex-1 flex-col transition-all duration-300 ease-in-out min-w-0 gap-5">
         <Topbar title={title} />
 
-        <main
-          style={{
-            flex: 1,
-            overflowY: "auto",
-            padding: 40,
-          }}
-        >
-          {children}
-        </main>
+        <main className="flex-1 overflow-y-auto">{children}</main>
       </div>
     </div>
   );

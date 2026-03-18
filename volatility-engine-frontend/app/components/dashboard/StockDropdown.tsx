@@ -17,7 +17,7 @@ export default function StockDropdown({
     <div className="relative">
       <button
         onClick={() => setOpen(!open)}
-        className="border border-white/20 px-5 py-2 rounded-md text-white"
+        className="border border-white/20 px-5 py-2  text-white"
       >
         {selected}
       </button>

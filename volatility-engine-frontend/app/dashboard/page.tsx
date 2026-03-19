@@ -20,40 +20,20 @@ import StockDropdown from "../components/dashboard/StockDropdown";
 
 import { useAuth } from "../context/authContext";
 import { useRouter } from "next/navigation";
-import useStockPrices from "../api-hooks/dashboard";
+import {
+  useStockPrices,
+  useStockReturns,
+  useRealizedVolatility,
+} from "../api-hooks/stocks";
 import useVolatility from "../api-hooks/volatility";
-
-import type { Formatter } from "recharts/types/component/DefaultTooltipContent";
 
 type ChartTab = "price" | "volatility" | "returns";
 
-function generateVolSeries(prices: number[]) {
-  if (prices.length < 2) return Array(prices.length).fill(0);
-  return prices.map((_, i) => {
-    if (i < 2) return 0;
-    const window = prices.slice(Math.max(0, i - 30), i);
-    const mean = window.reduce((a, b) => a + b, 0) / window.length;
-    const variance =
-      window.reduce((a, b) => a + Math.pow(b - mean, 2), 0) / window.length;
-    return +((Math.sqrt(variance) / mean) * 100).toFixed(2);
-  });
-}
-
-function computeReturns(prices: number[]) {
-  return prices.map((p, i) => {
-    if (i === 0) return 0;
-    return +(((p - prices[i - 1]) / prices[i - 1]) * 100).toFixed(3);
-  });
-}
-
-// Thin every N labels so the x-axis isn't wall-to-wall text
 function tickEvery<T>(arr: T[], n = 20): (T | "")[] {
   return arr.map((v, i) => (i % n === 0 ? v : ""));
 }
 
-const CHART_STYLE = {
-  background: "transparent",
-} as const;
+const CHART_STYLE = { background: "transparent" } as const;
 
 const TOOLTIP_STYLE = {
   backgroundColor: "#111",
@@ -63,11 +43,10 @@ const TOOLTIP_STYLE = {
   fontSize: 12,
 };
 
-// Custom dot that only renders on the last point (clean price line look)
-const NoDot = () => null;
-
 export default function Dashboard() {
   const { prices: rawPrices } = useStockPrices();
+  const { returns: rawReturns } = useStockReturns();
+  const { realizedVol: rawVol } = useRealizedVolatility();
   const { token, loading } = useAuth();
   const router = useRouter();
 
@@ -94,22 +73,32 @@ export default function Dashboard() {
   }, [token]);
 
   const priceSeries = rawPrices.map((r) => r[selected] as number);
-  const volSeries = generateVolSeries(priceSeries);
-  const returnSeries = computeReturns(priceSeries);
 
   const latestPrice = priceSeries.at(-1) ?? 0;
   const prevPrice = priceSeries.at(-2) ?? latestPrice;
   const change = prevPrice ? ((latestPrice - prevPrice) / prevPrice) * 100 : 0;
 
-  // Build unified data arrays for Recharts
   const priceData = labels.map((date, i) => ({ date, value: priceSeries[i] }));
-  const volData = labels.map((date, i) => ({ date, value: volSeries[i] }));
-  const returnData = labels.map((date, i) => ({
-    date,
-    value: returnSeries[i],
+
+  const volData = rawVol.map((r) => ({
+    date: r.Date as string,
+    value: +(r[selected] as number).toFixed(2),
+  }));
+
+  const returnData = rawReturns.map((r) => ({
+    date: r.Date as string,
+    value: +((r[selected] as number) * 100).toFixed(3),
   }));
 
   const sparseLabels = tickEvery(labels, 20);
+  const sparseVolLabels = tickEvery(
+    volData.map((r) => r.date),
+    20,
+  );
+  const sparseReturnLabels = tickEvery(
+    returnData.map((r) => r.date),
+    20,
+  );
 
   const priceColor = change >= 0 ? "#22c55e" : "#ef4444";
 
@@ -123,7 +112,6 @@ export default function Dashboard() {
 
   return (
     <main className="bg-black text-white">
-      {/* Header */}
       <section className="px-12 flex justify-between items-center">
         <div>
           <h1 className="text-5xl font-semibold">{selected}</h1>
@@ -141,11 +129,8 @@ export default function Dashboard() {
         />
       </section>
 
-      {/* Stat cards */}
       <section className="px-12 flex gap-6 pb-10 mt-2">
-
         <StatCard label="Price" value={`$${latestPrice.toFixed(2)}`} />
-
         <StatCard
           label="30D Volatility"
           value={
@@ -159,7 +144,6 @@ export default function Dashboard() {
         />
       </section>
 
-      {/* Charts */}
       <section className="px-12 pb-12">
         <ChartTabs active={activeChart} setActive={setActiveChart} />
 
@@ -188,10 +172,7 @@ export default function Dashboard() {
               <Tooltip
                 contentStyle={TOOLTIP_STYLE}
                 formatter={
-                  ((v: number | string | undefined) => {
-                    if (v == null) return ["—", "Price"];
-                    return [`$${Number(v).toFixed(2)}`, "Price"];
-                  }) as any
+                  ((v: number) => [`$${v.toFixed(2)}`, "Price"]) as any
                 }
                 labelStyle={{ color: "rgba(255,255,255,0.5)", marginBottom: 4 }}
               />
@@ -216,7 +197,7 @@ export default function Dashboard() {
               />
               <XAxis
                 dataKey="date"
-                ticks={sparseLabels.filter(Boolean) as string[]}
+                ticks={sparseVolLabels.filter(Boolean) as string[]}
                 tick={{ fill: "rgba(255,255,255,0.35)", fontSize: 11 }}
                 axisLine={false}
                 tickLine={false}
@@ -231,10 +212,10 @@ export default function Dashboard() {
               <Tooltip
                 contentStyle={TOOLTIP_STYLE}
                 formatter={
-                  ((v: number | string | undefined) => {
-                    if (v == null) return ["—", "Price"];
-                    return [`$${Number(v).toFixed(2)}`, "Price"];
-                  }) as any
+                  ((v: number) => [
+                    `${v.toFixed(2)}%`,
+                    "Realized Volatility",
+                  ]) as any
                 }
                 labelStyle={{ color: "rgba(255,255,255,0.5)", marginBottom: 4 }}
               />
@@ -264,7 +245,7 @@ export default function Dashboard() {
               />
               <XAxis
                 dataKey="date"
-                ticks={sparseLabels.filter(Boolean) as string[]}
+                ticks={sparseReturnLabels.filter(Boolean) as string[]}
                 tick={{ fill: "rgba(255,255,255,0.35)", fontSize: 11 }}
                 axisLine={false}
                 tickLine={false}
@@ -280,10 +261,7 @@ export default function Dashboard() {
               <Tooltip
                 contentStyle={TOOLTIP_STYLE}
                 formatter={
-                  ((v: number | string | undefined) => {
-                    if (v == null) return ["—", "Price"];
-                    return [`$${Number(v).toFixed(2)}`, "Price"];
-                  }) as any
+                  ((v: number) => [`${v.toFixed(3)}%`, "Return"]) as any
                 }
                 labelStyle={{ color: "rgba(255,255,255,0.5)", marginBottom: 4 }}
               />

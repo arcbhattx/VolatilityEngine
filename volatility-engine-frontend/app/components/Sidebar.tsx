@@ -16,9 +16,9 @@ import {
 const NAV_MAIN = [
   { id: "dashboard", label: "Dashboard", icon: <BarChart2 size={15} /> },
   { id: "analytics", label: "Analytics", icon: <Activity size={15} /> },
-  { id: "signals",   label: "Signals",   icon: <Signal size={15} />,   badge: 3 },
-  { id: "markets",   label: "Markets",   icon: <Globe size={15} /> },
-  { id: "watchlist", label: "Watchlist", icon: <Star size={15} />,     badge: 7 },
+  { id: "signals", label: "Signals", icon: <Signal size={15} />, badge: 3 },
+  { id: "markets", label: "Markets", icon: <Globe size={15} /> },
+  { id: "watchlist", label: "Watchlist", icon: <Star size={15} />, badge: 7 },
 ];
 
 const NAV_BOTTOM = [
@@ -73,7 +73,11 @@ export default function Sidebar({
             ${collapsed ? "mx-auto" : "ml-auto"}
           `}
         >
-          {collapsed ? <PanelLeftOpen size={16} /> : <PanelLeftClose size={16} />}
+          {collapsed ? (
+            <PanelLeftOpen size={16} />
+          ) : (
+            <PanelLeftClose size={16} />
+          )}
         </button>
       </div>
 

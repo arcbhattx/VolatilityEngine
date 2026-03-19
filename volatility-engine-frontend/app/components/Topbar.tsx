@@ -19,14 +19,14 @@ export default function Topbar({ title }: TopbarProps) {
           minute: "2-digit",
           second: "2-digit",
           hour12: false,
-        })
+        }),
       );
       setDate(
         now.toLocaleDateString("en-US", {
           weekday: "short",
           month: "short",
           day: "numeric",
-        })
+        }),
       );
     };
     update();

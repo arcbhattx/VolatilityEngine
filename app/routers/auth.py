@@ -8,7 +8,10 @@ from core.database import get_async_session
 from core.security import verify_password, get_password_hashed, create_access_token, ACCESS_TOKEN_EXPIRES_MINUTES
 from dependencies.auth import get_current_active_user
 from models.user import User
+from models.ticker import Ticker
 from schema.auth_models import Token, UserCreate, UserRead
+
+from utils.seed import seed_default_tickers
 
 router = APIRouter(prefix="/auth")
 
@@ -49,6 +52,8 @@ async def create_user(user: UserCreate, session: AsyncSession = Depends(get_asyn
     except Exception:
         await session.rollback()
         raise HTTPException(status_code=500, detail="Failed to create user")
+
+    await seed_default_tickers(new_user.id, session)
 
     return {"status": "success", "user": {"id": new_user.id, "username": new_user.username}}
 

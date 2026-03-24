@@ -19,8 +19,12 @@ from app.ml.preprocessing import compute_features, build_sequences
 MODELS_DIR = Path(__file__).parent / "models"
 MODELS_DIR.mkdir(exist_ok=True)
 
-FEATURE_COLS = ["log_return", "realized_vol_5d", "realized_vol_21d", "realized_vol_63d"]
-TARGET_COL   = "realized_vol_21d"
+FEATURE_COLS = [
+    "log_return", "log_volume_change", "log_trading_range", "close_open_return",
+    "realized_vol_5d", "realized_vol_21d", "realized_vol_63d",
+    "ma_5", "ma_21", "ma_ratio", "vol_change", "garch_vol"
+]
+TARGET_COL   = "daily_vol"
 HORIZONS     = [30, 60, 90]
 LOOKBACK     = 63
 
@@ -45,6 +49,7 @@ def train(
     )
 
     df = compute_features(df_raw)
+    
     X, y, feat_scaler, tgt_scaler = build_sequences(
         df, FEATURE_COLS, TARGET_COL, lookback=LOOKBACK, horizons=HORIZONS
     )
@@ -77,13 +82,13 @@ def train(
         dropout=dropout,
     ).to(device)
 
-    optimizer = torch.optim.Adam(model.parameters(), lr=lr)
-    criterion = nn.MSELoss()
+    optimizer = torch.optim.Adam(model.parameters(), lr=lr, weight_decay=1e-5)
+    criterion = nn.HuberLoss()
 
     scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(
-        optimizer, patience=10, factor=0.5
+        optimizer, patience=7, factor=0.5, min_lr=1e-6
     )
-
+    patience_couter = 0
     best_val_loss = float("inf")
     model_path = MODELS_DIR / f"{ticker}_lstm.pt"
 
@@ -116,7 +121,13 @@ def train(
 
         if val_loss < best_val_loss:
             best_val_loss = val_loss
+            patience_couter = 0
             torch.save(model.state_dict(), model_path)
+        else:
+            patience_couter += 1
+            if patience_couter >= 15:
+                print(f"Early stopping at epoch {epoch}")
+                break
 
     print(f"\nBest val loss: {best_val_loss:.6f}  ->  saved to {model_path}")
 
@@ -129,7 +140,7 @@ def train(
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("--ticker",      default="AAPL")
+    parser.add_argument("--ticker",      default="GOOG")
     parser.add_argument("--epochs",      type=int,   default=100)
     parser.add_argument("--batch_size",  type=int,   default=32)
     parser.add_argument("--lr",          type=float, default=1e-3)

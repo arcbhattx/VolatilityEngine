@@ -9,7 +9,7 @@ def get_prices(
     start: Union[str, datetime, None] = None,
     end: Union[str, datetime, None] = None,
     lookback_days: int = 365,
-    price_col: str = "Close",
+    price_col: str = None,
     auto_adjust: bool = True,
 ) -> pd.DataFrame:
     """
@@ -82,17 +82,17 @@ def get_prices(
             f"No data returned for {ticker} between {start.date()} and {end.date()}. "
             "Check that the ticker symbol is valid and the date range contains trading days."
         )
+    
+    if isinstance(raw.columns, pd.MultiIndex):
+        raw.columns = raw.columns.get_level_values(0)
 
-    # --- strip timezone from index (keeps things simple downstream)
     raw.index = raw.index.tz_localize(None) if raw.index.tz is not None else raw.index
 
-    # --- optionally narrow to a single price column --------------------------
+    # Only narrow columns if caller explicitly requests a single column
     if price_col is not None:
         if len(tickers) == 1:
-            # Flat column names → just pick the one column
             raw = raw[[price_col]]
         else:
-            # MultiIndex (field, ticker) → select field level
-            raw = raw[price_col]  # returns DataFrame with ticker columns
+            raw = raw[price_col]
 
     return raw

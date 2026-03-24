@@ -75,27 +75,3 @@ async def get_realized_volatility(
     
     return JSONResponse(content=json.loads(rolling_vol.to_json(orient="records")))
  
-
-@router.get("/prices-test")
-async def get_stocks_prices(
-    db: AsyncSession = Depends(get_async_session),
-    current_user: User = Depends(get_current_user)
-):
-    ticker_list = ["AAPL", "TSLA", "NVDA", "MSFT", "AMZN", "META", "GOOG"]
-
-    df = get_prices(ticker=ticker_list, lookback_days=90)
-    df = df.reset_index()
-    df["Date"] = df["Date"].dt.strftime("%Y-%m-%d")
-    return JSONResponse(content=json.loads(df.to_json(orient="records")))
-
-@router.get("/returns-test")
-async def get_stock_returns_test(
-    db: AsyncSession = Depends(get_async_session),
-    current_user: User = Depends(get_current_user)
-):
-    ticker_list = ["AAPL", "TSLA", "NVDA", "MSFT", "AMZN", "META", "GOOG"]
-    df = get_prices(ticker=ticker_list, lookback_days=90)
-    df = df.pct_change().dropna()
-    df = df.reset_index()
-    df["Date"] = df["Date"].dt.strftime("%Y-%m-%d")
-    return JSONResponse(content=json.loads(df.to_json(orient="records")))

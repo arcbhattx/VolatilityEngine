@@ -83,9 +83,6 @@ def get_prices(
             "Check that the ticker symbol is valid and the date range contains trading days."
         )
     
-    if isinstance(raw.columns, pd.MultiIndex):
-        raw.columns = raw.columns.get_level_values(0)
-
     raw.index = raw.index.tz_localize(None) if raw.index.tz is not None else raw.index
 
     # Only narrow columns if caller explicitly requests a single column

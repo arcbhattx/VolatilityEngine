@@ -63,8 +63,9 @@ def compute_features(df: pd.DataFrame, price_col: str = "Close") -> pd.DataFrame
 
     return df
 
+    
 def build_sequences(
-        df: pd.DataFrame,
+        df: pd.DataFrame, # Multiindex dataframe
         feature_cols: list[str],
         target_col: str,
         lookback: int = 63,
@@ -80,50 +81,60 @@ def build_sequences(
 
     Returns X, y, feature_scaler, target_scaler
     """
-    
-    feature_scaler = StandardScaler()
-    target_scaler = StandardScaler()
+    tickers = df.index.get_level_values("ticker").unique()
+    max_horizon = max(horizons)
 
-    features = df[feature_cols].copy()
-
-    # getting rid of outliers
-    features = features.clip(
-        lower=features.quantile(0.01),
-        upper = features.quantile(0.99),
+    all_features = df[feature_cols].copy()
+    all_features = all_features.clip(
+        lower=all_features.quantile(0.01),
+        upper=all_features.quantile(0.99),
         axis=1
     )
 
-    features_scaled = feature_scaler.fit_transform(features.values)
+    feature_scaler = StandardScaler().fit(all_features.values)
 
-    raw_targets = df[target_col].values
+    target_scaler = StandardScaler()
 
-    max_horizon = max(horizons)
-    X, y = [], []
 
-    for i in range(lookback, len(features_scaled) - max_horizon):
+    all_X, all_y = [], []
 
-        start_X = i - lookback
-        end_X = i
+    for ticker in tickers:
+        ticker_df = df.loc[ticker]  # flat (date-indexed) DataFrame
 
-        past_window = features_scaled[start_X:end_X]
+        features = ticker_df[feature_cols].copy()
+        features = features.clip(
+            lower=features.quantile(0.01),
+            upper=features.quantile(0.99),
+            axis=1
+        )
+        features_scaled = feature_scaler.transform(features.values)  # transform only, not fit
+        raw_targets = ticker_df[target_col].values
 
-        future_targets = []
+        for i in range(lookback, len(features_scaled) - max_horizon):
+            past_window = features_scaled[i - lookback:i]
 
-        for h in horizons:
-            start_y = i
-            end_y = i + h
+            future_targets = [
+                float(np.mean(raw_targets[i:i + h]))
+                for h in horizons
+            ]
 
-            future_avg = np.mean(raw_targets[start_y:end_y]) 
-            future_targets.append(float(future_avg))
-        
-        X.append(past_window)
-        y.append(future_targets)
+            all_X.append(past_window)
+            all_y.append(future_targets)
 
-    
-    X = np.array(X)
-    y = np.array(y)
+    X = np.array(all_X)
+    y = np.array(all_y)
 
-    y = target_scaler.fit_transform(y)
+    y = target_scaler.fit_transform(y)  # fit once on all collected targets
 
-    
     return X, y, feature_scaler, target_scaler
+
+
+def compute_features_multi(df: pd.DataFrame) -> pd.DataFrame:
+    """ Compute's features for multiindex dataframes"""
+
+    tickers = df.columns.get_level_values(1).unique()
+    results = {}
+    for ticker in tickers:
+        ticker_df = df.xs(ticker, axis=1, level=1)
+        results[ticker] = compute_features(ticker_df)
+    return pd.concat(results, names=["ticker"])

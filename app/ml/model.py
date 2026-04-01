@@ -13,7 +13,7 @@ class VolatilityLSTM(nn.Module):
     def __init__(
             self,
             input_size: int,
-            hidden_size: int = 128,
+            hidden_size: int = 32,
             num_layers: int = 2,
             n_horizons: int = 3,
             dropout: float = 0.2, 
@@ -27,18 +27,16 @@ class VolatilityLSTM(nn.Module):
             dropout=dropout if num_layers > 1 else 0.0,
         )
 
-        self.norm = nn.BatchNorm1d(hidden_size)  # stabilizes post-LSTM representations
         self.dropout = nn.Dropout(dropout)
         self.fc = nn.Sequential(
-            nn.Linear(hidden_size, 64),
+            nn.Linear(hidden_size, 32),
             nn.ReLU(),
             nn.Dropout(dropout),
-            nn.Linear(64, n_horizons),
+            nn.Linear(32, n_horizons),
         )
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         lstm_out, _ = self.lstm(x)
         last = lstm_out[:, -1, :]
-        last = self.norm(last)   # normalize before dropout
         last = self.dropout(last)
         return self.fc(last)

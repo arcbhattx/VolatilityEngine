@@ -12,6 +12,7 @@ from core.database import get_async_session
 from models.user import User
 
 import numpy as np
+import pandas as pd
 
 router = APIRouter(
     prefix="/stocks"
@@ -29,6 +30,9 @@ async def get_stocks_prices(
         return JSONResponse(content=[])
 
     df = get_prices(ticker=ticker_list)
+    df = df["Close"]
+    if isinstance(df, pd.Series):
+        df = df.to_frame()
     df = df.reset_index()
     df["Date"] = df["Date"].dt.strftime("%Y-%m-%d")
     return JSONResponse(content=json.loads(df.to_json(orient="records")))
@@ -47,6 +51,9 @@ async def get_stock_returns(
 
     df = get_prices(ticker=ticker_list)
     df = df.pct_change().dropna()
+    df = df["Close"]
+    if isinstance(df, pd.Series):
+        df = df.to_frame()
     df = df.reset_index()
     df["Date"] = df["Date"].dt.strftime("%Y-%m-%d")
     return JSONResponse(content=json.loads(df.to_json(orient="records")))
@@ -64,6 +71,9 @@ async def get_realized_volatility(
         return JSONResponse(content=[])
 
     df = get_prices(ticker=ticker_list)
+    df = df["Close"]
+    if isinstance(df, df.Series):
+        df = df.to_frame()
 
     log_returns = np.log(df / df.shift(1)).dropna()
 

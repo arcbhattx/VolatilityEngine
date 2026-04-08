@@ -72,7 +72,7 @@ async def get_realized_volatility(
 
     df = get_prices(ticker=ticker_list)
     df = df["Close"]
-    if isinstance(df, df.Series):
+    if isinstance(df, pd.Series):
         df = df.to_frame()
 
     log_returns = np.log(df / df.shift(1)).dropna()

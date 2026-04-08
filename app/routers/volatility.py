@@ -46,6 +46,7 @@ async def get_volatility(
 
     try:
         result = predict_volatility(predictor, df)
+        print(result)
     except ValueError as e:
         raise HTTPException(status_code=422, detail=str(e))
 

@@ -57,14 +57,42 @@ def compute_features(df: pd.DataFrame, price_col: str = "Close") -> pd.DataFrame
     df["garch_vol"] = df["garch_vol"]
 
 
-    df["daily_vol"] = df["log_return"].abs()
+    #df["daily_vol"] = df["log_return"].abs()
+    df["daily_vol"] = df["log_return"].rolling(21).std() * np.sqrt(252)
 
     df.dropna(inplace=True)
 
     return df
 
+def build_sequences(df, feature_cols, lookback, horizons):
+    # Build forward vol targets for each horizon
+    target_cols = []
+    for h in horizons:
+        col = f"fwd_vol_{h}d"
+        df[col] = df["log_return"].shift(-h).rolling(h).std() * np.sqrt(252)
+        target_cols.append(col)
     
-def build_sequences(
+    df = df.dropna().copy()
+
+    features = df[feature_cols].values
+    targets  = df[target_cols].values
+
+    # Scale features
+    feat_scaler = StandardScaler()
+    features_scaled = feat_scaler.fit_transform(features)
+
+    # Scale targets
+    tgt_scaler = StandardScaler()
+    targets_scaled = tgt_scaler.fit_transform(targets)
+
+    X, y = [], []
+    for i in range(lookback, len(features_scaled) - max(horizons)):
+        X.append(features_scaled[i - lookback:i])
+        y.append(targets_scaled[i])
+
+    return np.array(X), np.array(y), feat_scaler, tgt_scaler
+    
+def build_sequences_2(
         df: pd.DataFrame, # Multiindex dataframe
         feature_cols: list[str],
         target_col: str,

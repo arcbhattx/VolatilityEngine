@@ -8,8 +8,8 @@ interface VolatilityData {
   as_of: string;
 }
 
-export default function useVolatility(ticker: string) {
-  const [data, setData] = useState<VolatilityData | null>(null);
+export function useVolatility(ticker: string) {
+  const [predictedVolatility, setData] = useState<VolatilityData | null>(null);
   const [apiLoading, setApiLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -30,7 +30,6 @@ export default function useVolatility(ticker: string) {
 
         const json: VolatilityData = await response.json();
         setData(json);
-        console.log(json);
       } catch (err) {
         setError(err instanceof Error ? err.message : "Unknown error");
       } finally {
@@ -41,5 +40,5 @@ export default function useVolatility(ticker: string) {
     fetchVolatility();
   }, [ticker]);
 
-  return { data, apiLoading, error };
+  return { predictedVolatility, apiLoading, error };
 }

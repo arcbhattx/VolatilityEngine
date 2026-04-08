@@ -13,9 +13,9 @@ import torch
 import torch.nn as nn
 from torch.utils.data import DataLoader, TensorDataset
 
-from app.ml.model import VolatilityLSTM
-from app.ml.preprocessing import compute_features, build_sequences, compute_features_multi
-from app.services.stock_prices import get_prices
+from ml.model import VolatilityLSTM
+from ml.preprocessing import compute_features, build_sequences, compute_features_multi
+from services.stock_prices import get_prices
 
 from typing import Union
 
@@ -28,7 +28,8 @@ FEATURE_COLS = [
     "ma_5", "ma_21", "ma_ratio", "vol_change", "garch_vol"
 ]
 TARGET_COL   = "daily_vol"
-HORIZONS     = [30, 60, 90]
+#HORIZONS     = [30, 60, 90]
+HORIZONS = list(range(5,91,5))
 LOOKBACK     = 63
 
 def train(
@@ -41,6 +42,12 @@ def train(
         dropout: float = 0.2,
         val_split: float = 0.15
 ):
+    if isinstance(ticker, list):
+        ticker_name = "_".join(ticker).upper()
+    else:
+        ticker_name = ticker.upper()
+
+    model_path = MODELS_DIR / f"{ticker_name}_volatility_lstm.pt"
     from datetime import datetime, timedelta
 
     print(f"Fetching price data for {ticker}...")
@@ -53,7 +60,7 @@ def train(
     df = compute_features_multi(df_raw)
     
     X, y, feat_scaler, tgt_scaler = build_sequences(
-        df, FEATURE_COLS, TARGET_COL, lookback=LOOKBACK, horizons=HORIZONS
+        df, FEATURE_COLS, lookback=LOOKBACK, horizons=HORIZONS
     )
 
     n_val = int(len(X) * val_split)
@@ -124,7 +131,7 @@ def train(
         if val_loss < best_val_loss:
             best_val_loss = val_loss
             patience_couter = 0
-            #torch.save(model.state_dict(), model_path)
+            torch.save(model.state_dict(), model_path)
         else:
             patience_couter += 1
             if patience_couter >= 15:
@@ -133,12 +140,16 @@ def train(
 
     print(f"\nBest val loss: {best_val_loss:.6f} ")
 
+    scaler_path = MODELS_DIR / f"{ticker_name}_scalers.pkl"
+    with open(scaler_path, "wb") as f:
+        pickle.dump({"feat_scaler": feat_scaler, "tgt_scaler": tgt_scaler}, f)
+
     return model
 
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("--ticker",      default="GOOG")
+    parser.add_argument("--ticker",      default="AAPL")
     parser.add_argument("--epochs",      type=int,   default=100)
     parser.add_argument("--batch_size",  type=int,   default=32)
     parser.add_argument("--lr",          type=float, default=1e-3)

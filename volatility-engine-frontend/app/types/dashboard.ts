@@ -1,1 +1,1 @@
-export type ChartTab = "price" | "volatility" | "returns"
+export type ChartTab = "price" | "volatility" | "returns";

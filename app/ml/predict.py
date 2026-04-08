@@ -15,10 +15,19 @@ import torch
 from ml.model import VolatilityLSTM
 from ml.preprocessing import compute_features
 
+from services.stock_prices import get_prices
+
+from datetime import datetime, timedelta
+
 
 MODELS_DIR   = Path(__file__).parent / "models"
-FEATURE_COLS = ["log_return", "realized_vol_5d", "realized_vol_21d", "realized_vol_63d"]
-HORIZONS     = [30, 60, 90]
+FEATURE_COLS = [
+    "log_return", "log_volume_change", "log_trading_range", "close_open_return",
+    "realized_vol_5d", "realized_vol_21d", "realized_vol_63d",
+    "ma_5", "ma_21", "ma_ratio", "vol_change", "garch_vol"
+]
+#HORIZONS     = [30, 60, 90]
+HORIZONS = list(range(5,91,5))
 LOOKBACK     = 63
 
 @dataclass
@@ -29,7 +38,7 @@ class Predictor:
     device: torch.device
 
 def load_predictor(ticker: str) -> Predictor:
-    model_path  = MODELS_DIR / f"{ticker}_lstm.pt"
+    model_path  = MODELS_DIR / f"{ticker}_volatility_lstm.pt"
     scaler_path = MODELS_DIR / f"{ticker}_scalers.pkl"
 
     if not model_path.exists():
@@ -42,7 +51,10 @@ def load_predictor(ticker: str) -> Predictor:
     model = VolatilityLSTM(
         input_size=len(FEATURE_COLS),
         n_horizons=len(HORIZONS),
+        hidden_size=128
     ).to(device)
+
+
     model.load_state_dict(torch.load(model_path, map_location=device))
     model.eval()
 
@@ -51,8 +63,8 @@ def load_predictor(ticker: str) -> Predictor:
 
     return Predictor(
         model=model,
-        feat_scaler=scalers["features"],
-        tgt_scaler=scalers["target"],
+        feat_scaler=scalers["feat_scaler"],
+        tgt_scaler=scalers["tgt_scaler"],
         device=device,
     )
 
@@ -80,10 +92,30 @@ def predict_volatility(
         pred_scaled = predictor.model(x).cpu().numpy()
 
     pred_vol = predictor.tgt_scaler.inverse_transform(pred_scaled)[0]
-
+    '''
     return {
         "vol_30d": round(float(pred_vol[0]), 4),
         "vol_60d": round(float(pred_vol[1]), 4),
         "vol_90d": round(float(pred_vol[2]), 4),
     }
+    '''
+
+    return {
+        f"vol_{h}d": round(float(pred_vol[i]), 4)
+        for i, h in enumerate(HORIZONS)
+    }
+
+
+if __name__ == "__main__":
+    ticker = "AAPL"
+    df = get_prices(
+        ticker=ticker,
+        start=datetime.today() - timedelta(days=365),
+        end=datetime.today(),
+    )
     
+
+    p_loader = load_predictor(ticker=ticker)
+    result = predict_volatility(p_loader, df)
+    for horizon, vol in result.items():
+        print(f"{horizon}: {vol}")

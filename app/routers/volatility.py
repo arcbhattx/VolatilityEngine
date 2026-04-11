@@ -56,3 +56,41 @@ async def get_volatility(
         **result,
     )
 
+@router.get("/{ticker}/historical", response_model=list[dict])
+async def get_historical_volatility_predictions(ticker: str):
+    """
+    Return predicted volatility for every date in history (rolling window).
+    """
+    ticker = ticker.upper()
+
+    try:
+        predictor = _cached_predictor(ticker)
+    except FileNotFoundError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+
+    df = get_prices(
+        ticker=ticker,
+        start=datetime.today() - timedelta(days=365),
+        end=datetime.today(),
+    )
+
+    results = []
+    min_window = 60  # minimum rows needed to compute features
+
+    for i in range(min_window, len(df)):
+        window_df = df.iloc[:i]
+        date = df.index[i - 1]  # or df.iloc[i - 1]["Date"] if Date is a column
+
+        try:
+            prediction = predict_volatility(predictor, window_df)
+            results.append({
+                "date": date.strftime("%Y-%m-%d") if hasattr(date, "strftime") else str(date),
+                "predicted_vol_30": prediction.get("vol_30d") * 100,
+                "predicted_vol_60": prediction.get("vol_60d") * 100,
+                "predicted_vol_90": prediction.get("vol_90d") * 100,
+            })
+        except ValueError:
+            continue  # skip windows where features can't be computed
+
+    return results
+

@@ -5,7 +5,7 @@ type Props = {
   up?: boolean;
 };
 
-export default function StatCard({ label, value, sub, up }: Props) {
+export function StatCard({ label, value, sub, up }: Props) {
   return (
     <div
       className="

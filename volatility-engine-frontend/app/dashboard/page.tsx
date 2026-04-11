@@ -8,13 +8,23 @@ import {
   Bar,
   XAxis,
   YAxis,
+  Legend,
   Tooltip,
   ResponsiveContainer,
   ReferenceLine,
   CartesianGrid,
 } from "recharts";
 
+import { FileDown, ImageDown } from "lucide-react";
+
+import { useRef } from "react";
+import { toPng } from "html-to-image";
+
 import { ChartTab } from "../types/dashboard";
+
+import { StatCard } from "../components/dashboard/StatCard";
+import { StockDropdown } from "../components/dashboard/StockDropdown";
+import { LoadingScreen } from "../components/reusable/LoadingScreen";
 
 import {
   useStockPrices,
@@ -22,7 +32,10 @@ import {
   useStockReturns,
 } from "../api-hooks/stocks";
 
-import { useVolatility } from "../api-hooks/volatility";
+import {
+  useVolatility,
+  useHistoricalVolatility,
+} from "../api-hooks/volatility";
 
 const TOOLTIP_STYLE = {
   backgroundColor: "#111",
@@ -33,6 +46,8 @@ const TOOLTIP_STYLE = {
 };
 
 export default function Dashboard() {
+
+  const chartRef = useRef<HTMLDivElement>(null);
   const { prices, apiLoading: pricesLoading } = useStockPrices();
   const { returns, apiLoading: returnsLoading } = useStockReturns();
   const { realizedVol, apiLoading: realizedVolLoading } =
@@ -47,6 +62,9 @@ export default function Dashboard() {
 
   const activeTicker = selectedTicker || tickers[0];
 
+  const { historicalPredictions, apiLoading: historicalVolLoading } =
+    useHistoricalVolatility(activeTicker);
+
   const {
     predictedVolatility,
     apiLoading: predictedVolatilityLoading,
@@ -54,6 +72,72 @@ export default function Dashboard() {
   } = useVolatility(activeTicker);
 
   const [activeChart, setActiveChart] = useState<ChartTab>("volatility");
+
+
+  function exportPng() {
+  if (!chartRef.current) return;
+  toPng(chartRef.current).then((dataUrl) => {
+    const link = document.createElement("a");
+    link.download = `${activeTicker}-${activeChart}.png`;
+    link.href = dataUrl;
+    link.click();
+  });
+}
+
+function exportCsv() {
+  const data =
+    activeChart === "price" ? priceChartData :
+    activeChart === "volatility" ? volChartData :
+    returnsChartData;
+
+  const keys = Object.keys(data[0]);
+  const rows = [keys.join(","), ...data.map((row) => keys.map((k) => (row as any)[k] ?? "").join(","))];
+  const blob = new Blob([rows.join("\n")], { type: "text/csv" });
+  const link = document.createElement("a");
+  link.download = `${activeTicker}-${activeChart}.csv`;
+  link.href = URL.createObjectURL(blob);
+  link.click();
+}
+  function getVolRegime(vol: number): { label: string; color: string } {
+    if (vol < 15)
+      return { label: "LOW", color: "text-blue-400 border-blue-400/30" };
+    if (vol < 25)
+      return { label: "NORMAL", color: "text-green-400 border-green-400/30" };
+    if (vol < 40)
+      return { label: "ELEVATED", color: "text-amber-400 border-amber-400/30" };
+    return { label: "EXTREME", color: "text-red-400 border-red-400/30" };
+  }
+
+  function getTermStructure(
+    vol30: number,
+    vol90: number,
+  ): { label: string; desc: string; color: string } {
+    const diff = vol90 - vol30;
+    if (diff > 2)
+      return {
+        label: "CONTANGO",
+        desc: "Vol curve rising — market expects increasing uncertainty",
+        color: "text-amber-400 border-amber-400/30",
+      };
+    if (diff < -2)
+      return {
+        label: "BACKWARDATION",
+        desc: "Vol curve falling — market expects conditions to calm",
+        color: "text-blue-400 border-blue-400/30",
+      };
+    return {
+      label: "FLAT",
+      desc: "Vol curve flat — no strong directional expectation",
+      color: "text-zinc-400 border-zinc-400/30",
+    };
+  }
+
+  const termStructure = useMemo(() => {
+    if (!predictedVolatility) return null;
+    const vol30 = predictedVolatility.vol_30d * 100;
+    const vol90 = predictedVolatility.vol_90d * 100;
+    return getTermStructure(vol30, vol90);
+  }, [predictedVolatility]);
 
   const latestPrice = useMemo(() => {
     if (!prices.length || !activeTicker) return null;
@@ -99,9 +183,17 @@ export default function Dashboard() {
   const volChartData = useMemo(() => {
     if (!realizedVol.length) return [];
 
+    const predMap = new Map(
+      historicalPredictions.map((p) => [
+        p.date.split("T")[0],
+        p.predicted_vol_30,
+      ]),
+    );
+
     const historical = realizedVol.map((row) => ({
       x: row.Date,
       realized: row[activeTicker],
+      predicted: predMap.get((row.Date as string).split("T")[0]) ?? null,
     }));
 
     if (!predictedCurve.length) return historical;
@@ -111,15 +203,15 @@ export default function Dashboard() {
     const future = predictedCurve.map((point) => {
       const futureDate = new Date(lastDate);
       futureDate.setDate(futureDate.getDate() + point.horizon);
-
       return {
         x: futureDate.toISOString().split("T")[0],
+        realized: null,
         predicted: point.value,
       };
     });
 
     return [...historical, ...future];
-  }, [realizedVol, activeTicker, predictedCurve]);
+  }, [realizedVol, activeTicker, predictedCurve, historicalPredictions]);
 
   const returnsChartData = useMemo(
     () =>
@@ -130,15 +222,20 @@ export default function Dashboard() {
     [returns, activeTicker],
   );
 
-  const isLoading = pricesLoading || returnsLoading || realizedVolLoading;
+  const isLoading =
+    pricesLoading ||
+    returnsLoading ||
+    realizedVolLoading ||
+    historicalVolLoading;
 
   const change = dailyChange ?? 0;
   const priceColor = change >= 0 ? "#22c55e" : "#ef4444";
+  const regime = realized30dVol ? getVolRegime(realized30dVol) : null;
 
   if (isLoading) {
     return (
-      <main className="bg-black text-white min-h-screen flex items-center justify-center">
-        <p className="text-zinc-400">Loading...</p>
+      <main className="bg-black min-h-screen flex items-center justify-center">
+        <LoadingScreen />
       </main>
     );
   }
@@ -155,44 +252,60 @@ export default function Dashboard() {
           </p>
         </div>
 
-        <select
-          value={activeTicker}
-          onChange={(e) => setSelectedTicker(e.target.value)}
-          className="bg-zinc-900 text-white px-4 py-2 rounded border border-zinc-700"
-        >
-          {tickers.map((t) => (
-            <option key={t}>{t}</option>
-          ))}
-        </select>
+        <StockDropdown
+          stocks={tickers}
+          selected={activeTicker}
+          setSelected={setSelectedTicker}
+        />
       </section>
 
       <section className="px-12 flex gap-6 py-6">
-        {[
-          {
-            label: "Price",
-            value: latestPrice != null ? `$${latestPrice.toFixed(2)}` : "—",
-          },
-          {
-            label: "30D Volatility",
-            value:
-              realized30dVol != null ? `${realized30dVol.toFixed(2)}%` : "—",
-          },
-          {
-            label: "Daily Change",
-            value: `${change >= 0 ? "+" : ""}${change.toFixed(2)}%`,
-          },
-        ].map(({ label, value }) => (
-          <div key={label} className="bg-zinc-900 rounded-xl px-6 py-4 flex-1">
-            <p className="text-zinc-400 text-sm">{label}</p>
-            <p className="text-2xl font-semibold mt-1">{value}</p>
-          </div>
-        ))}
+        <div className="flex-1">
+          <StatCard
+            label="Price"
+            value={latestPrice != null ? `$${latestPrice.toFixed(2)}` : "—"}
+          />
+        </div>
+
+        <div className="flex-1 flex flex-col gap-2">
+          <StatCard
+            label="30D Volatility"
+            value={
+              realized30dVol != null ? `${realized30dVol.toFixed(2)}%` : "—"
+            }
+          />
+          {regime && (
+            <span
+              className={`self-start text-xs px-2 py-0.5 border tracking-widest cursor-default ${regime.color}`}
+              title={`${regime.label}: ${
+                regime.label === "LOW"
+                  ? "Realized vol below 15% — unusually calm market"
+                  : regime.label === "NORMAL"
+                    ? "Realized vol 15–25% — typical market conditions"
+                    : regime.label === "ELEVATED"
+                      ? "Realized vol 25–40% — heightened uncertainty"
+                      : "Realized vol above 40% — extreme market stress"
+              }`}
+            >
+              {regime.label}
+            </span>
+          )}
+        </div>
+
+        <div className="flex-1">
+          <StatCard
+            label="Daily Change"
+            value={`${change >= 0 ? "+" : ""}${change.toFixed(2)}%`}
+            sub={`${change >= 0 ? "+" : ""}${change.toFixed(2)}%`}
+            up={change >= 0}
+          />
+        </div>
       </section>
 
       {/* Chart tabs */}
       <section className="px-12 pb-12">
         <div className="flex gap-4 mb-4">
-          {(["price", "volatility", "returns"] as ChartTab[]).map((tab) => (
+          {(["volatility", "price", "returns"] as ChartTab[]).map((tab) => (
             <button
               key={tab}
               onClick={() => setActiveChart(tab)}
@@ -207,12 +320,35 @@ export default function Dashboard() {
           ))}
         </div>
 
+
+        {activeChart === "volatility" && termStructure && (
+    <div className="flex items-center gap-3 mb-4">
+      <span
+        className={`text-xs px-2 py-0.5 border tracking-widest cursor-default ${termStructure.color}`}
+        title={termStructure.desc}
+      >
+        {termStructure.label}
+      </span>
+      <span className="text-zinc-500 text-xs">{termStructure.desc}</span>
+    </div>
+  )}
+
+  <div className="flex items-center gap-2 mb-3">
+  <button onClick={exportCsv} title="Export as CSV" className="text-zinc-500 hover:text-white transition-colors">
+    <FileDown size={15} />
+  </button>
+  <button onClick={exportPng} title="Export as PNG" className="text-zinc-500 hover:text-white transition-colors">
+    <ImageDown size={15} />
+  </button>
+</div>
+
+      <div ref={chartRef}>
         {activeChart === "price" && (
           <ResponsiveContainer width="100%" height={350}>
             <LineChart data={priceChartData}>
               <CartesianGrid
                 strokeDasharray="3 3"
-                stroke="rgba(255,255,255,0.04)"
+                stroke="rgba(255,255,255,0.2)"
               />
               <XAxis
                 dataKey="date"
@@ -242,42 +378,18 @@ export default function Dashboard() {
         {activeChart === "volatility" && (
           <ResponsiveContainer width="100%" height={350}>
             <LineChart data={volChartData}>
-              <CartesianGrid
-                strokeDasharray="3 3"
-                stroke="rgba(255,255,255,0.04)"
-              />
-              <XAxis
-                dataKey="x"
-                tick={{ fill: "rgba(255,255,255,0.35)", fontSize: 11 }}
-                axisLine={false}
-                tickLine={false}
-              />
-              <YAxis
-                tick={{ fill: "rgba(255,255,255,0.35)", fontSize: 11 }}
-                axisLine={false}
-                tickLine={false}
-                tickFormatter={(v) => `${v}%`}
-                width={50}
-              />
-              <Tooltip contentStyle={TOOLTIP_STYLE} />
-              <Line
-                type="monotone"
-                dataKey="realized"
-                stroke="#f59e0b"
-                strokeWidth={1.5}
-                dot={false}
-                name="Realized Vol"
-              />
-
-              <Line
-                type="monotone"
-                dataKey="predicted"
-                stroke="#a78bfa"
-                strokeWidth={2}
-                dot={false}
-                name="Predicted Curve"
-              />
-            </LineChart>
+  <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.2)" />
+  <XAxis dataKey="x" tick={{ fill: "rgba(255,255,255,0.35)", fontSize: 11 }} axisLine={false} tickLine={false} />
+  <YAxis tick={{ fill: "rgba(255,255,255,0.35)", fontSize: 11 }} axisLine={false} tickLine={false} tickFormatter={(v) => `${v}%`} width={50} />
+  <Tooltip contentStyle={TOOLTIP_STYLE} />
+  <Legend
+    verticalAlign="top"
+    align="right"
+    wrapperStyle={{ fontSize: 11, color: "rgba(255,255,255,0.4)", paddingBottom: 12 }}
+  />
+  <Line type="monotone" dataKey="realized" stroke="#f59e0b" strokeWidth={1.5} dot={false} name="Realized Vol" />
+  <Line type="monotone" dataKey="predicted" stroke="#a78bfa" strokeWidth={2} dot={false} name="Predicted Vol" connectNulls />
+</LineChart>
           </ResponsiveContainer>
         )}
 
@@ -308,7 +420,8 @@ export default function Dashboard() {
             </BarChart>
           </ResponsiveContainer>
         )}
+      </div>
       </section>
-    </main>
+    </main> 
   );
 }

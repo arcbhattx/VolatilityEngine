@@ -1,29 +1,26 @@
+import { useState } from "react";
+
 type Props = {
   stocks: string[];
   selected: string;
   setSelected: (s: string) => void;
 };
 
-import { useState } from "react";
-
-export default function StockDropdown({
-  stocks,
-  selected,
-  setSelected,
-}: Props) {
+export function StockDropdown({ stocks, selected, setSelected }: Props) {
   const [open, setOpen] = useState(false);
 
   return (
     <div className="relative">
       <button
         onClick={() => setOpen(!open)}
-        className="border border-white/20 px-5 py-2  text-white"
+        className="flex items-center gap-2 text-white/60 hover:text-white text-sm transition-colors"
       >
-        {selected}
+        <span className="text-white font-medium">{selected}</span>
+        <span className="text-white/30">{open ? "▲" : "▼"}</span>
       </button>
 
       {open && (
-        <div className="absolute right-0 mt-2 bg-[#111] border border-white/10 rounded-md">
+        <div className="absolute right-0 mt-3 bg-black border border-white/10 z-10 min-w-[120px]">
           {stocks.map((s) => (
             <button
               key={s}
@@ -31,7 +28,8 @@ export default function StockDropdown({
                 setSelected(s);
                 setOpen(false);
               }}
-              className="block px-4 py-2 text-left text-white/80 hover:bg-white/10 w-full"
+              className={`block w-full px-4 py-2 text-left text-sm transition-colors
+                ${s === selected ? "text-white" : "text-white/40 hover:text-white"}`}
             >
               {s}
             </button>

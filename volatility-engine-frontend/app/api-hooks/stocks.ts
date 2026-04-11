@@ -1,4 +1,6 @@
 import { useState, useEffect } from "react";
+import { useAuth } from "../context/authContext";
+import { MOCK_PRICES, MOCK_RETURNS, MOCK_REALIZED_VOL } from "./mockData";
 
 interface PriceRecord {
   Date: string;
@@ -20,7 +22,15 @@ export function useStockPrices() {
   const [apiLoading, setApiLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  const { isGuest } = useAuth();
+
   useEffect(() => {
+    if (isGuest) {
+      setPrices(MOCK_PRICES);
+      setApiLoading(false);
+      return;
+    }
+
     async function fetchPrices() {
       try {
         setApiLoading(true);
@@ -36,7 +46,7 @@ export function useStockPrices() {
       }
     }
     fetchPrices();
-  }, []);
+  }, [isGuest]);
 
   return { prices, apiLoading, error };
 }
@@ -46,7 +56,15 @@ export function useStockReturns() {
   const [apiLoading, setApiLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  const { isGuest } = useAuth();
+
   useEffect(() => {
+    if (isGuest) {
+      setReturns(MOCK_RETURNS);
+      setApiLoading(false);
+      return;
+    }
+
     async function fetchReturns() {
       try {
         setApiLoading(true);
@@ -64,7 +82,7 @@ export function useStockReturns() {
       }
     }
     fetchReturns();
-  }, []);
+  }, [isGuest]);
 
   return { returns, apiLoading, error };
 }
@@ -106,7 +124,15 @@ export function useRealizedVolatility() {
   const [apiLoading, setApiLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  const { isGuest } = useAuth();
+
   useEffect(() => {
+    if (isGuest) {
+      setRealizedVol(MOCK_REALIZED_VOL);
+      setApiLoading(false);
+      return;
+    }
+
     async function fetchRealizedVol() {
       try {
         setApiLoading(true);
@@ -126,7 +152,7 @@ export function useRealizedVolatility() {
       }
     }
     fetchRealizedVol();
-  }, []);
+  }, [isGuest]);
 
   return { realizedVol, apiLoading, error };
 }

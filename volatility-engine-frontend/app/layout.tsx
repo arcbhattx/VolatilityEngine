@@ -15,7 +15,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" className={geist.variable}>
-      <body className="h-screen w-full overflow-hidden">
+      <body className="bg-black text-white antialiased font-sans">
         <AuthProvider>
           <ConditionalLayout>{children}</ConditionalLayout>
         </AuthProvider>

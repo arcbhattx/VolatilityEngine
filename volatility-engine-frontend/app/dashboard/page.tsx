@@ -1,6 +1,8 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { useAuth } from "../context/authContext";
+import { DEMO_TICKERS } from "../api-hooks/mockData";
 import {
   LineChart,
   Line,
@@ -48,15 +50,17 @@ const TOOLTIP_STYLE = {
 export default function Dashboard() {
 
   const chartRef = useRef<HTMLDivElement>(null);
+  const { isGuest } = useAuth();
   const { prices, apiLoading: pricesLoading } = useStockPrices();
   const { returns, apiLoading: returnsLoading } = useStockReturns();
   const { realizedVol, apiLoading: realizedVolLoading } =
     useRealizedVolatility();
 
   const tickers = useMemo(() => {
+    if (isGuest) return DEMO_TICKERS;
     if (!prices.length) return [];
     return Object.keys(prices[0]).filter((k) => k !== "Date");
-  }, [prices]);
+  }, [prices, isGuest]);
 
   const [selectedTicker, setSelectedTicker] = useState<string>("");
 
@@ -241,6 +245,19 @@ function exportCsv() {
   }
   return (
     <main className="bg-black text-white min-h-screen">
+      {isGuest && (
+        <div className="bg-white/5 border-b border-white/10 px-12 py-2 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse" />
+            <span className="text-[10px] tracking-[0.3em] uppercase text-amber-500/80 font-medium">
+              Guest Mode • Demo Data Active
+            </span>
+          </div>
+          <span className="text-[9px] text-white/20 uppercase tracking-widest">
+            Sign in for historical data on all assets
+          </span>
+        </div>
+      )}
       <section className="px-12 pt-10 flex justify-between items-center">
         <div>
           <h1 className="text-5xl font-semibold">{activeTicker}</h1>

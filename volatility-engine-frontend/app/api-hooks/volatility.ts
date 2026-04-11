@@ -1,4 +1,6 @@
 import { useState, useEffect } from "react";
+import { useAuth } from "../context/authContext";
+import { MOCK_VOLATILITY_STATS, MOCK_HISTORICAL_PREDICTIONS } from "./mockData";
 
 interface VolatilityData {
   ticker: string;
@@ -20,8 +22,16 @@ export function useVolatility(ticker: string) {
   const [apiLoading, setApiLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  const { isGuest } = useAuth();
+
   useEffect(() => {
     if (!ticker) return;
+
+    if (isGuest) {
+      setData(MOCK_VOLATILITY_STATS[ticker] || null);
+      setApiLoading(false);
+      return;
+    }
 
     async function fetchVolatility() {
       try {
@@ -41,7 +51,7 @@ export function useVolatility(ticker: string) {
     }
 
     fetchVolatility();
-  }, [ticker]);
+  }, [ticker, isGuest]);
 
   return { predictedVolatility, apiLoading, error };
 }
@@ -51,8 +61,16 @@ export function useHistoricalVolatility(ticker: string) {
   const [apiLoading, setApiLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  const { isGuest } = useAuth();
+
   useEffect(() => {
     if (!ticker) return;
+
+    if (isGuest) {
+      setData(MOCK_HISTORICAL_PREDICTIONS(ticker));
+      setApiLoading(false);
+      return;
+    }
 
     async function fetchHistorical() {
       try {
@@ -72,7 +90,7 @@ export function useHistoricalVolatility(ticker: string) {
     }
 
     fetchHistorical();
-  }, [ticker]);
+  }, [ticker, isGuest]);
 
   return { historicalPredictions, apiLoading, error };
 }

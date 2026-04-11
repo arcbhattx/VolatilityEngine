@@ -149,8 +149,8 @@ def train(
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("--ticker",      default="AAPL")
-    parser.add_argument("--epochs",      type=int,   default=100)
+    parser.add_argument("--ticker",      default="GOOG")
+    parser.add_argument("--epochs",      type=int,   default=25)
     parser.add_argument("--batch_size",  type=int,   default=32)
     parser.add_argument("--lr",          type=float, default=1e-3)
     parser.add_argument("--hidden_size", type=int,   default=128)

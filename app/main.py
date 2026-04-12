@@ -16,7 +16,6 @@ from core.database import create_db_tables, get_async_session, engine
 from contextlib import asynccontextmanager
 
 from routers import stocks
-from routers import auth
 from routers import volatility
 
 
@@ -47,7 +46,6 @@ app.add_middleware(
 )
 
 app.include_router(stocks.router)
-app.include_router(auth.router)
 app.include_router(volatility.router)
 
 if __name__ == "__main__":

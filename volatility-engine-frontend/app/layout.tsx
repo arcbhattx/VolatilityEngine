@@ -1,7 +1,6 @@
 import "./globals.css";
 import { Geist } from "next/font/google";
-import ConditionalLayout from "./components/ConditionalLayout";
-import { AuthProvider } from "./context/authContext";
+import Topbar from "./components/Topbar";
 
 const geist = Geist({
   subsets: ["latin"],
@@ -16,9 +15,8 @@ export default function RootLayout({
   return (
     <html lang="en" className={geist.variable}>
       <body className="bg-black text-white antialiased font-sans">
-        <AuthProvider>
-          <ConditionalLayout>{children}</ConditionalLayout>
-        </AuthProvider>
+        <Topbar />
+        {children}
       </body>
     </html>
   );

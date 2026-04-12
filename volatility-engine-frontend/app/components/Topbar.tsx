@@ -2,11 +2,7 @@
 
 import { useEffect, useState } from "react";
 
-interface TopbarProps {
-  title: string;
-}
-
-export default function Topbar({ title }: TopbarProps) {
+export default function Topbar() {
   const [time, setTime] = useState("");
   const [date, setDate] = useState("");
 
@@ -35,34 +31,30 @@ export default function Topbar({ title }: TopbarProps) {
   }, []);
 
   return (
-    <header className="h-14 flex items-center justify-between px-8 bg-black border-b border-white/[0.06]">
-      {/* Left — page title */}
-      <div className="flex items-center gap-3">
-        {/* Accent pip */}
-        <span className="block w-[3px] h-4 rounded-full bg-green-400/80" />
-        <span className="text-[11px] tracking-[0.25em] uppercase text-white/60 font-medium">
-          {title}
+    <header className="h-20 flex items-center justify-between px-10 bg-black border-b border-white/[0.06]">
+      {/* Left — fixed title */}
+      <div className="flex items-center gap-4">
+        <span className="block w-1 h-6 rounded-full bg-green-400/80" />
+        <span className="text-lg tracking-[0.2em] uppercase text-white/80 font-semibold">
+          Volatility Engine
         </span>
       </div>
 
       {/* Right — live clock + market status */}
-      <div className="flex items-center gap-6">
-        {/* Market status badge */}
-        <div className="flex items-center gap-1.5">
-          <span className="relative flex h-1.5 w-1.5">
+      <div className="flex items-center gap-8">
+        <div className="flex items-center gap-2">
+          <span className="relative flex h-2 w-2">
             <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75" />
-            <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-green-400" />
+            <span className="relative inline-flex rounded-full h-2 w-2 bg-green-400" />
           </span>
-          <span className="text-[10px] tracking-widest uppercase text-green-400/80">
+          <span className="text-xs tracking-widest uppercase text-green-400/80">
             Market Open
           </span>
         </div>
 
-        {/* Divider */}
-        <span className="w-px h-4 bg-white/[0.08]" />
+        <span className="w-px h-5 bg-white/[0.08]" />
 
-        {/* Clock */}
-        <div className="flex items-center gap-2 text-[11px] tabular-nums">
+        <div className="flex items-center gap-3 text-sm tabular-nums">
           <span className="text-white/25">{date}</span>
           <span className="text-white/60 font-medium">{time}</span>
         </div>

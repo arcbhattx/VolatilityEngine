@@ -81,13 +81,22 @@ export default function Sidebar({ collapsed, setCollapsed }: SidebarProps) {
           label="Settings" 
           collapsed={collapsed} 
         />
-        <div className={`mt-4 px-3 flex items-center gap-3 ${collapsed ? "justify-center" : ""}`}>
-           <div className="w-8 h-8 rounded-full bg-gradient-to-br from-green-400 to-blue-500 flex-shrink-0" />
+        
+        <div className={`mt-4 px-3 flex flex-col gap-2`}>
+           <div className={`flex items-center gap-3 ${collapsed ? "justify-center" : ""}`}>
+              <div className="w-8 h-8 rounded-full bg-gradient-to-br from-green-400 to-blue-500 flex-shrink-0" />
+              {!collapsed && (
+                <div className="flex flex-col">
+                  <span className="text-sm font-medium text-white">Archit Bhatt</span>
+                  <span className="text-[10px] text-zinc-500 uppercase tracking-widest">Premium Plan</span>
+                </div>
+              )}
+           </div>
+           
            {!collapsed && (
-             <div className="flex flex-col">
-               <span className="text-sm font-medium text-white">Guest User</span>
-               <span className="text-[10px] text-zinc-500 uppercase tracking-widest">Premium</span>
-             </div>
+             <button className="w-full text-left px-3 py-1.5 text-xs text-zinc-500 hover:text-red-400 transition-colors mt-2 border-t border-white/[0.02] pt-3">
+               Log Out
+             </button>
            )}
         </div>
       </div>

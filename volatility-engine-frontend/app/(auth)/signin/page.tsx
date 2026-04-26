@@ -1,10 +1,20 @@
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
 import Link from "next/link";
-import { Mail, Lock, Chrome, ArrowRight } from "lucide-react";
+import { Mail, Lock, Chrome, ArrowRight, Loader2 } from "lucide-react";
+import { useLogin } from "../../api-hooks/auth";
 
 export default function SignInPage() {
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
+  const { login, loading, error } = useLogin();
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    await login(username, password);
+  };
+
   return (
     <div className="bg-zinc-900/50 backdrop-blur-xl border border-white/[0.06] rounded-2xl p-8 shadow-2xl">
       <div className="mb-8">
@@ -17,7 +27,7 @@ export default function SignInPage() {
 
       <div className="space-y-4">
         {/* Social Provider */}
-        <button className="w-full flex items-center justify-center gap-3 bg-white text-black font-semibold py-3 rounded-xl hover:bg-zinc-200 transition-colors">
+        <button className="w-full flex items-center justify-center gap-3 bg-white text-black font-semibold py-3 rounded-xl hover:bg-zinc-200 transition-colors disabled:opacity-50" disabled={loading}>
           <Chrome size={20} />
           Sign in with Google
         </button>
@@ -29,15 +39,24 @@ export default function SignInPage() {
         </div>
 
         {/* Email Form */}
-        <div className="space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-4">
+          {error && (
+            <div className="bg-red-500/10 border border-red-500/20 text-red-400 text-xs p-3 rounded-lg text-center">
+              {error}
+            </div>
+          )}
+
           <div className="space-y-2">
-            <label className="text-xs font-semibold text-zinc-400 uppercase tracking-widest ml-1">Email Address</label>
+            <label className="text-xs font-semibold text-zinc-400 uppercase tracking-widest ml-1">Username</label>
             <div className="relative">
               <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-500" size={18} />
               <input 
-                type="email" 
-                placeholder="name@company.com"
+                type="text" 
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
+                placeholder="username"
                 className="w-full bg-black/50 border border-white/[0.06] rounded-xl py-3 pl-12 pr-4 text-white placeholder:text-zinc-700 focus:outline-none focus:border-green-400/50 transition-colors"
+                required
               />
             </div>
           </div>
@@ -45,23 +64,36 @@ export default function SignInPage() {
           <div className="space-y-2">
             <div className="flex justify-between items-center ml-1">
               <label className="text-xs font-semibold text-zinc-400 uppercase tracking-widest">Password</label>
-              <button className="text-xs text-green-400/80 hover:text-green-400 transition-colors">Forgot?</button>
+              <button type="button" className="text-xs text-green-400/80 hover:text-green-400 transition-colors">Forgot?</button>
             </div>
             <div className="relative">
               <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-500" size={18} />
               <input 
                 type="password" 
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
                 placeholder="••••••••"
                 className="w-full bg-black/50 border border-white/[0.06] rounded-xl py-3 pl-12 pr-4 text-white placeholder:text-zinc-700 focus:outline-none focus:border-green-400/50 transition-colors"
+                required
               />
             </div>
           </div>
 
-          <button className="w-full flex items-center justify-center gap-2 bg-green-500/10 border border-green-500/20 text-green-400 font-semibold py-3 rounded-xl hover:bg-green-500/20 transition-all mt-2 group">
-            Sign In
-            <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" />
+          <button 
+            type="submit"
+            disabled={loading}
+            className="w-full flex items-center justify-center gap-2 bg-green-500/10 border border-green-500/20 text-green-400 font-semibold py-3 rounded-xl hover:bg-green-500/20 transition-all mt-2 group"
+          >
+            {loading ? (
+              <Loader2 className="animate-spin" size={18} />
+            ) : (
+              <>
+                Sign In
+                <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" />
+              </>
+            )}
           </button>
-        </div>
+        </form>
 
         <p className="text-center text-zinc-500 text-sm mt-8">
           Don't have an account?{" "}

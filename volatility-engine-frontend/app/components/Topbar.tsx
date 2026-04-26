@@ -5,10 +5,36 @@ import { useEffect, useState } from "react";
 export default function Topbar() {
   const [time, setTime] = useState("");
   const [date, setDate] = useState("");
+  const [isMarketOpen, setIsMarketOpen] = useState(false);
 
   useEffect(() => {
     const update = () => {
       const now = new Date();
+      
+      // Get time in NY timezone
+      const nyTime = new Intl.DateTimeFormat("en-US", {
+        timeZone: "America/New_York",
+        hour: "numeric",
+        minute: "numeric",
+        second: "numeric",
+        weekday: "short",
+        hour12: false,
+      }).formatToParts(now);
+
+      const parts: Record<string, string> = {};
+      nyTime.forEach(p => parts[p.type] = p.value);
+
+      const weekday = parts.weekday;
+      const hour = parseInt(parts.hour);
+      const minute = parseInt(parts.minute);
+
+      const isWeekday = !["Sat", "Sun"].includes(weekday);
+      const totalMinutes = hour * 60 + minute;
+      const openTime = 9 * 60 + 30; // 9:30
+      const closeTime = 16 * 60;   // 16:00
+
+      setIsMarketOpen(isWeekday && totalMinutes >= openTime && totalMinutes < closeTime);
+
       setTime(
         now.toLocaleTimeString("en-US", {
           hour: "2-digit",
@@ -41,11 +67,13 @@ export default function Topbar() {
       <div className="flex items-center gap-8">
         <div className="flex items-center gap-2">
           <span className="relative flex h-2 w-2">
-            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75" />
-            <span className="relative inline-flex rounded-full h-2 w-2 bg-green-400" />
+            {isMarketOpen && (
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75" />
+            )}
+            <span className={`relative inline-flex rounded-full h-2 w-2 ${isMarketOpen ? "bg-green-400" : "bg-zinc-600"}`} />
           </span>
-          <span className="text-xs tracking-widest uppercase text-green-400/80">
-            Market Open
+          <span className={`text-xs tracking-widest uppercase ${isMarketOpen ? "text-green-400/80" : "text-zinc-500"}`}>
+            {isMarketOpen ? "Market Open" : "Market Closed"}
           </span>
         </div>
 

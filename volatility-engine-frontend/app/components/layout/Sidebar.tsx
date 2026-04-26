@@ -12,6 +12,7 @@ import {
   ChevronRight
 } from "lucide-react";
 import SidebarItem from "./SidebarItem";
+import { useAuth } from "../../api-hooks/auth";
 
 interface SidebarProps {
   collapsed: boolean;
@@ -19,6 +20,8 @@ interface SidebarProps {
 }
 
 export default function Sidebar({ collapsed, setCollapsed }: SidebarProps) {
+  const { logout } = useAuth();
+
   return (
     <aside 
       className={`
@@ -94,7 +97,10 @@ export default function Sidebar({ collapsed, setCollapsed }: SidebarProps) {
            </div>
            
            {!collapsed && (
-             <button className="w-full text-left px-3 py-1.5 text-xs text-zinc-500 hover:text-red-400 transition-colors mt-2 border-t border-white/[0.02] pt-3">
+             <button 
+               onClick={logout}
+               className="w-full text-left px-3 py-1.5 text-xs text-zinc-500 hover:text-red-400 transition-colors mt-2 border-t border-white/[0.02] pt-3"
+             >
                Log Out
              </button>
            )}

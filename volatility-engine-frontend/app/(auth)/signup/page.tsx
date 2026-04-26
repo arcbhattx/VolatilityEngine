@@ -1,10 +1,21 @@
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
 import Link from "next/link";
-import { User, Mail, Lock, Chrome, ArrowRight } from "lucide-react";
+import { User, Mail, Lock, Chrome, ArrowRight, Loader2 } from "lucide-react";
+import { useSignup } from "../../api-hooks/auth";
 
 export default function SignUpPage() {
+  const [username, setUsername] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const { signup, loading, error } = useSignup();
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    await signup(username, email, password);
+  };
+
   return (
     <div className="bg-zinc-900/50 backdrop-blur-xl border border-white/[0.06] rounded-2xl p-8 shadow-2xl">
       <div className="mb-8">
@@ -17,7 +28,7 @@ export default function SignUpPage() {
 
       <div className="space-y-4">
         {/* Social Provider */}
-        <button className="w-full flex items-center justify-center gap-3 bg-white text-black font-semibold py-3 rounded-xl hover:bg-zinc-200 transition-colors">
+        <button className="w-full flex items-center justify-center gap-3 bg-white text-black font-semibold py-3 rounded-xl hover:bg-zinc-200 transition-colors disabled:opacity-50" disabled={loading}>
           <Chrome size={20} />
           Sign up with Google
         </button>
@@ -29,15 +40,24 @@ export default function SignUpPage() {
         </div>
 
         {/* Form */}
-        <div className="space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-4">
+          {error && (
+            <div className="bg-red-500/10 border border-red-500/20 text-red-400 text-xs p-3 rounded-lg text-center">
+              {error}
+            </div>
+          )}
+
           <div className="space-y-2">
-            <label className="text-xs font-semibold text-zinc-400 uppercase tracking-widest ml-1">Full Name</label>
+            <label className="text-xs font-semibold text-zinc-400 uppercase tracking-widest ml-1">Username</label>
             <div className="relative">
               <User className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-500" size={18} />
               <input 
                 type="text" 
-                placeholder="John Doe"
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
+                placeholder="username"
                 className="w-full bg-black/50 border border-white/[0.06] rounded-xl py-3 pl-12 pr-4 text-white placeholder:text-zinc-700 focus:outline-none focus:border-green-400/50 transition-colors"
+                required
               />
             </div>
           </div>
@@ -48,8 +68,11 @@ export default function SignUpPage() {
               <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-500" size={18} />
               <input 
                 type="email" 
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
                 placeholder="name@company.com"
                 className="w-full bg-black/50 border border-white/[0.06] rounded-xl py-3 pl-12 pr-4 text-white placeholder:text-zinc-700 focus:outline-none focus:border-green-400/50 transition-colors"
+                required
               />
             </div>
           </div>
@@ -60,17 +83,30 @@ export default function SignUpPage() {
               <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-500" size={18} />
               <input 
                 type="password" 
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
                 placeholder="••••••••"
                 className="w-full bg-black/50 border border-white/[0.06] rounded-xl py-3 pl-12 pr-4 text-white placeholder:text-zinc-700 focus:outline-none focus:border-green-400/50 transition-colors"
+                required
               />
             </div>
           </div>
 
-          <button className="w-full flex items-center justify-center gap-2 bg-green-500/10 border border-green-500/20 text-green-400 font-semibold py-3 rounded-xl hover:bg-green-500/20 transition-all mt-2 group">
-            Create Account
-            <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" />
+          <button 
+            type="submit"
+            disabled={loading}
+            className="w-full flex items-center justify-center gap-2 bg-green-500/10 border border-green-500/20 text-green-400 font-semibold py-3 rounded-xl hover:bg-green-500/20 transition-all mt-2 group"
+          >
+            {loading ? (
+              <Loader2 className="animate-spin" size={18} />
+            ) : (
+              <>
+                Create Account
+                <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" />
+              </>
+            )}
           </button>
-        </div>
+        </form>
 
         <p className="text-center text-zinc-500 text-sm mt-8">
           Already have an account?{" "}

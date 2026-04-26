@@ -1,6 +1,7 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
+import { useSearchParams, useRouter } from "next/navigation";
 import {
   LineChart,
   Line,
@@ -53,14 +54,21 @@ export default function Dashboard() {
   const { realizedVol, apiLoading: realizedVolLoading } =
     useRealizedVolatility();
 
+  const searchParams = useSearchParams();
+  const router = useRouter();
+
   const tickers = useMemo(() => {
     if (!prices.length) return [];
     return Object.keys(prices[0]).filter((k) => k !== "Date");
   }, [prices]);
 
-  const [selectedTicker, setSelectedTicker] = useState<string>("");
+  const activeTicker = searchParams.get("ticker") || (tickers.length > 0 ? tickers[0] : "AAPL");
 
-  const activeTicker = selectedTicker || tickers[0];
+  const setSelectedTicker = (ticker: string) => {
+    const params = new URLSearchParams(searchParams.toString());
+    params.set("ticker", ticker);
+    router.push(`/?${params.toString()}`);
+  };
 
   const { historicalPredictions, apiLoading: historicalVolLoading } =
     useHistoricalVolatility(activeTicker);
@@ -259,47 +267,23 @@ function exportCsv() {
         />
       </section>
 
-      <section className="px-12 flex gap-6 py-6">
-        <div className="flex-1">
-          <StatCard
-            label="Price"
-            value={latestPrice != null ? `$${latestPrice.toFixed(2)}` : "—"}
-          />
-        </div>
+      <section className="px-12 grid grid-cols-1 md:grid-cols-3 gap-4 py-6">
+        <StatCard
+          label="Price"
+          value={latestPrice != null ? `$${latestPrice.toFixed(2)}` : "—"}
+        />
 
-        <div className="flex-1 flex flex-col gap-2">
-          <StatCard
-            label="30D Volatility"
-            value={
-              realized30dVol != null ? `${realized30dVol.toFixed(2)}%` : "—"
-            }
-          />
-          {regime && (
-            <span
-              className={`self-start text-xs px-2 py-0.5 border tracking-widest cursor-default ${regime.color}`}
-              title={`${regime.label}: ${
-                regime.label === "LOW"
-                  ? "Realized vol below 15% — unusually calm market"
-                  : regime.label === "NORMAL"
-                    ? "Realized vol 15–25% — typical market conditions"
-                    : regime.label === "ELEVATED"
-                      ? "Realized vol 25–40% — heightened uncertainty"
-                      : "Realized vol above 40% — extreme market stress"
-              }`}
-            >
-              {regime.label}
-            </span>
-          )}
-        </div>
+        <StatCard
+          label="30D Volatility"
+          value={realized30dVol != null ? `${realized30dVol.toFixed(2)}%` : "—"}
+          badge={regime ? { label: regime.label, color: regime.color } : undefined}
+        />
 
-        <div className="flex-1">
-          <StatCard
-            label="Daily Change"
-            value={`${change >= 0 ? "+" : ""}${change.toFixed(2)}%`}
-            sub={`${change >= 0 ? "+" : ""}${change.toFixed(2)}%`}
-            up={change >= 0}
-          />
-        </div>
+        <StatCard
+          label="Daily Change"
+          value={`${change >= 0 ? "+" : ""}${change.toFixed(2)}%`}
+          up={change >= 0}
+        />
       </section>
 
       {/* Chart tabs */}

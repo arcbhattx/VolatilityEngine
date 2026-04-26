@@ -15,7 +15,7 @@ from datetime import datetime, timedelta
 from app.core.database import create_db_tables, get_async_session, engine
 from contextlib import asynccontextmanager
 
-from app.routers import stocks, volatility, auth
+from app.routers import stocks, volatility, auth, news
 import app.schema.models  # Ensure models are registered for table creation
 
 
@@ -34,7 +34,7 @@ app = FastAPI(
     description="Stock volatility prediction using historical price data",
     version="1.0.0",
     lifespan=lifespan,
-    debubg = True,
+    debug=True,
 )
 
 app.add_middleware(
@@ -48,6 +48,7 @@ app.add_middleware(
 app.include_router(stocks.router)
 app.include_router(volatility.router)
 app.include_router(auth.router)
+app.include_router(news.router)
 
 if __name__ == "__main__":
     uvicorn.run(app, host='127.0.0.1', port=8000)

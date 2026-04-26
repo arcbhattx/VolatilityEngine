@@ -32,12 +32,9 @@ export default function Topbar() {
 
   return (
     <header className="h-20 flex items-center justify-between px-10 bg-black border-b border-white/[0.06]">
-      {/* Left — fixed title */}
-      <div className="flex items-center gap-4">
-        <span className="block w-1 h-6 rounded-full bg-green-400/80" />
-        <span className="text-lg tracking-[0.2em] uppercase text-white/80 font-semibold">
-          Volatility Engine
-        </span>
+      {/* Left — placeholder or dynamic breadcrumb */}
+      <div className="flex items-center gap-4 text-zinc-500 text-xs tracking-widest uppercase">
+        Dashboard / Home
       </div>
 
       {/* Right — live clock + market status */}

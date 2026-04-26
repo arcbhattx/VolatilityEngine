@@ -1,6 +1,7 @@
 import "./globals.css";
 import { Geist } from "next/font/google";
 import Topbar from "./components/Topbar";
+import LayoutWrapper from "./components/layout/LayoutWrapper";
 
 const geist = Geist({
   subsets: ["latin"],
@@ -15,8 +16,7 @@ export default function RootLayout({
   return (
     <html lang="en" className={geist.variable}>
       <body className="bg-black text-white antialiased font-sans">
-        <Topbar />
-        {children}
+        <LayoutWrapper>{children}</LayoutWrapper>
       </body>
     </html>
   );

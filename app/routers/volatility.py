@@ -2,9 +2,9 @@ from datetime import datetime, timedelta
 from functools import lru_cache
 
 from fastapi import APIRouter, HTTPException
-from schema.volatility_models import VolatilityResponse
-from ml.predict import load_predictor, predict_volatility
-from services.stock_prices import get_prices
+from app.schema.volatility_models import VolatilityResponse
+from app.ml.predict import load_predictor, predict_volatility
+from app.services.stock_prices import get_prices
 
 router = APIRouter(prefix="/volatility", tags=["volatility"])
 

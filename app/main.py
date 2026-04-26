@@ -12,11 +12,11 @@ import pandas as pd
 import numpy as np
 from datetime import datetime, timedelta
 
-from core.database import create_db_tables, get_async_session, engine
+from app.core.database import create_db_tables, get_async_session, engine
 from contextlib import asynccontextmanager
 
-from routers import stocks
-from routers import volatility
+from app.routers import stocks, volatility, auth
+import app.schema.models  # Ensure models are registered for table creation
 
 
 @asynccontextmanager
@@ -47,6 +47,7 @@ app.add_middleware(
 
 app.include_router(stocks.router)
 app.include_router(volatility.router)
+app.include_router(auth.router)
 
 if __name__ == "__main__":
     uvicorn.run(app, host='127.0.0.1', port=8000)

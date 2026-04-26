@@ -13,9 +13,9 @@ import torch
 import torch.nn as nn
 from torch.utils.data import DataLoader, TensorDataset
 
-from ml.model import VolatilityLSTM
-from ml.preprocessing import compute_features, build_sequences, compute_features_multi
-from services.stock_prices import get_prices
+from app.ml.model import VolatilityLSTM
+from app.ml.preprocessing import compute_features, build_sequences, compute_features_multi
+from app.services.stock_prices import get_prices
 
 from typing import Union
 

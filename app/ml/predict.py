@@ -12,10 +12,10 @@ import numpy as np
 import pandas as pd
 import torch
 
-from ml.model import VolatilityLSTM
-from ml.preprocessing import compute_features
+from app.ml.model import VolatilityLSTM
+from app.ml.preprocessing import compute_features
 
-from services.stock_prices import get_prices
+from app.services.stock_prices import get_prices
 
 from datetime import datetime, timedelta
 

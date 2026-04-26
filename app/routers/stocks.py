@@ -1,6 +1,6 @@
 from fastapi import APIRouter
 from fastapi.responses import JSONResponse
-from services.stock_prices import get_prices
+from app.services.stock_prices import get_prices
 
 import json
 import numpy as np
